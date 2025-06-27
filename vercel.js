@@ -3,18 +3,15 @@
   "builds": [
     {
       "src": "api/get-key.js",
-      "use": "@vercel/node"
+      "use": "@vercel/node",
+      "config": { "runtime": "nodejs18.x" }
     }
   ],
   "routes": [
     {
       "src": "/get-key",
-      "dest": "/api/get-key.js"
-    },
-    {
-      "src": "/",
-      "dest": "/api/get-key.js"  // Redirect root về API
-      // Hoặc hiển thị trang HTML tĩnh nếu có
+      "dest": "/api/get-key.js",
+      "methods": ["GET"]
     }
   ]
 }
