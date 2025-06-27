@@ -5,14 +5,16 @@
       "src": "api/get-key.js",
       "use": "@vercel/node",
       "config": {
-        "runtime": "nodejs18.x"
+        "runtime": "nodejs18.x",
+        "includeFiles": ["api/**"]
       }
     }
   ],
   "routes": [
     {
-      "src": "/api/get-key",
-      "dest": "/api/get-key.js"
+      "src": "/get-key",
+      "dest": "/api/get-key.js",
+      "methods": ["GET"]
     }
   ]
 }
