@@ -2,9 +2,12 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/get-key.js",
+      "src": "api/*.js",
       "use": "@vercel/node",
-      "config": { "runtime": "nodejs18.x" }
+      "config": { 
+        "runtime": "nodejs18.x",
+        "includeFiles": ["api/**"]
+      }
     }
   ],
   "routes": [
