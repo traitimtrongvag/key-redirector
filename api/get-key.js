@@ -1,15 +1,15 @@
 // api/get-key.js
 import { createClient } from "@supabase/supabase-js";
 
-// 1. Cấu hình Supabase (NÊN dùng biến môi trường)
+// Cấu hình Supabase (hard-code trực tiếp)
 const supabase = createClient(
-  process.env.SUPABASE_URL || "https://rzaqgswkrjnshrxgqsnb.supabase.co",
-  process.env.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6YXFnc3drcmpuc2hyeGdxc25iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMjMwODQsImV4cCI6MjA2NjU5OTA4NH0.Ji_C2JhMGzYzIp0FfeF-1IX-nMMYblAZo3yhh-fA_0w"
+  "https://rzaqgswkrjnshrxgqsnb.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6YXFnc3drcmpuc2hyeGdxc25iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMjMwODQsImV4cCI6MjA2NjU5OTA4NH0.Ji_C2JhMGzYzIp0FfeF-1IX-nMMYblAZo3yhh-fA_0w"
 );
 
 export default async function handler(req, res) {
   try {
-    // 2. Lấy key ngẫu nhiên
+    // Lấy key ngẫu nhiên
     const { data, error } = await supabase
       .from("keys1")
       .select("id, key")
@@ -17,7 +17,6 @@ export default async function handler(req, res) {
       .limit(1)
       .order("RANDOM()");
 
-    // 3. Xử lý khi không có key
     if (error) throw error;
     if (!data?.length) {
       return res.status(200).send(`
@@ -32,14 +31,14 @@ export default async function handler(req, res) {
       `);
     }
 
-    // 4. Đánh dấu key đã dùng
+    // Đánh dấu key đã dùng
     const selectedKey = data[0];
     await supabase
       .from("keys1")
       .update({ used: true, used_at: new Date().toISOString() })
       .eq("id", selectedKey.id);
 
-    // 5. Chuyển hướng với key
+    // Chuyển hướng
     const redirectUrl = new URL("https://traitimtrongvag.github.io/KeyCopy/index.html");
     redirectUrl.searchParams.set("key", encodeURIComponent(selectedKey.key));
     
