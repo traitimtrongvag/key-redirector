@@ -1,86 +1,56 @@
 // api/get-key.js
 import { createClient } from "@supabase/supabase-js";
 
-// Khởi tạo Supabase Client (sử dụng biến môi trường)
+// 1. Cấu hình Supabase (NÊN dùng biến môi trường)
 const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_KEY,
-  {
-    auth: {
-      persistSession: false // Tắt session cho serverless function
-    }
-  }
+  process.env.SUPABASE_URL || "https://rzaqgswkrjnshrxgqsnb.supabase.co",
+  process.env.SUPABASE_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ6YXFnc3drcmpuc2hyeGdxc25iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTEwMjMwODQsImV4cCI6MjA2NjU5OTA4NH0.Ji_C2JhMGzYzIp0FfeF-1IX-nMMYblAZo3yhh-fA_0w"
 );
-
-// Cache config cho hiệu năng
-const CACHE_CONTROL = "no-cache, no-store, must-revalidate";
-const EXPIRES = "0";
 
 export default async function handler(req, res) {
   try {
-    // Thiết lập headers bảo mật
-    res.setHeader("Content-Security-Policy", "default-src 'self'");
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    res.setHeader("Cache-Control", CACHE_CONTROL);
-    res.setHeader("Expires", EXPIRES);
-
-    // Chỉ chấp nhận method GET
-    if (req.method !== "GET") {
-      return res.status(405).json({ 
-        error: "Method Not Allowed",
-        message: "Chỉ hỗ trợ GET request"
-      });
-    }
-
-    console.log("🔄 Đang xử lý yêu cầu key...");
-
-    // 1. Lấy key ngẫu nhiên chưa sử dụng
+    // 2. Lấy key ngẫu nhiên
     const { data, error } = await supabase
       .from("keys1")
-      .select("id, key, created_at")
+      .select("id, key")
       .eq("used", false)
       .limit(1)
       .order("RANDOM()");
 
-    if (error) throw new Error(`Supabase error: ${error.message}`);
-    if (!data?.length) throw new Error("Không còn key khả dụng");
+    // 3. Xử lý khi không có key
+    if (error) throw error;
+    if (!data?.length) {
+      return res.status(200).send(`
+        <html>
+          <body>
+            <script>
+              alert("❌ Hiện không còn key khả dụng!");
+              window.location.href = "https://traitimtrongvag.github.io";
+            </script>
+          </body>
+        </html>
+      `);
+    }
 
-    const [keyData] = data;
-    console.log(`🔑 Key được chọn: ${keyData.key}`);
-
-    // 2. Đánh dấu key đã sử dụng (transaction)
-    const { error: updateError } = await supabase
+    // 4. Đánh dấu key đã dùng
+    const selectedKey = data[0];
+    await supabase
       .from("keys1")
-      .update({ 
-        used: true,
-        used_at: new Date().toISOString() 
-      })
-      .eq("id", keyData.id);
+      .update({ used: true, used_at: new Date().toISOString() })
+      .eq("id", selectedKey.id);
 
-    if (updateError) throw new Error(`Update error: ${updateError.message}`);
-
-    // 3. Tạo redirect URL an toàn
-    const redirectUrl = new URL(
-      "https://traitimtrongvag.github.io/KeyCopy/index.html"
-    );
-    redirectUrl.searchParams.set("key", encodeURIComponent(keyData.key));
-    redirectUrl.searchParams.set("ts", Date.now()); // Chống cache
-
-    console.log(`✅ Redirect đến: ${redirectUrl.toString()}`);
-
-    // 4. Redirect với mã 302
+    // 5. Chuyển hướng với key
+    const redirectUrl = new URL("https://traitimtrongvag.github.io/KeyCopy/index.html");
+    redirectUrl.searchParams.set("key", encodeURIComponent(selectedKey.key));
+    
     return res.redirect(302, redirectUrl.toString());
 
   } catch (error) {
-    console.error("❌ Lỗi:", error.message);
-    
-    // Xử lý các loại lỗi khác nhau
-    const statusCode = error.message.includes("Không còn key") ? 404 : 500;
-    
-    return res.status(statusCode).json({
-      error: "Lỗi hệ thống",
-      message: error.message,
-      timestamp: new Date().toISOString()
-    });
+    console.error("Lỗi hệ thống:", error);
+    return res.status(500).send(`
+      <h1>⚠️ Lỗi hệ thống</h1>
+      <p>${error.message}</p>
+      <a href="https://traitimtrongvag.github.io">Quay về trang chủ</a>
+    `);
   }
 }
