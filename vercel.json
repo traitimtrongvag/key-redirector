@@ -1,6 +1,14 @@
 {
   "version": 2,
+  "functions": {
+    "api/get-key.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "routes": [
-    { "src": "/get-key", "dest": "/api/get-key.js" }
+    {
+      "src": "/.*",
+      "dest": "/api/get-key.js"
+    }
   ]
 }
