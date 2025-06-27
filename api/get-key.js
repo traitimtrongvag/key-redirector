@@ -6,7 +6,7 @@ const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-export default async function handler(req, res) {
+export default async function handler(request, response) {
   const { data, error } = await supabase
     .from("keys1")
     .select("*")
@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     .order("RANDOM()", { ascending: false });
 
   if (error || !data || data.length === 0) {
-    return res.status(500).send("❌ Không còn key khả dụng!");
+    return response.status(500).send("❌ Không còn key khả dụng!");
   }
 
   const selectedKey = data[0];
@@ -25,7 +25,7 @@ export default async function handler(req, res) {
     .update({ used: true })
     .eq("id", selectedKey.id);
 
-  res.redirect(
+  return response.redirect(
     `https://traitimtrongvag.github.io/KeyCopy/index.html?key=${encodeURIComponent(selectedKey.key)}`
   );
 }
