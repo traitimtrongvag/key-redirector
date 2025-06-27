@@ -2,17 +2,17 @@
   "version": 2,
   "builds": [
     {
-      "src": "*.js",
+      "src": "api/get-key.js",
       "use": "@vercel/node",
       "config": {
-        "runtime": "nodejs18.x"  // Hoặc "nodejs20.x" nếu muốn dùng Node 20
+        "runtime": "nodejs18.x"
       }
     }
   ],
   "routes": [
     {
-      "src": "/(.*)",
-      "dest": "/index.js"  // Đảm bảo file chính của bạn là index.js
+      "src": "/api/get-key",
+      "dest": "/api/get-key.js"
     }
   ]
 }
